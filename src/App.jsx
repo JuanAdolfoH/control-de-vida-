@@ -1137,17 +1137,62 @@ function App() {
             </div>
 
             <div style={styles.card}>
-              <h2 style={styles.sectionTitle}>Materias Académicas</h2>
-              <ul style={styles.list}>
-                {(appData.crecimiento?.cursos || []).map(c => (
-                  <li key={c.id} style={{ ...styles.listItem, opacity: c.completado ? 0.5 : 1 }}>
-                    <span onClick={() => toggleCursoItem(c.id)} style={{ cursor: 'pointer', textDecoration: c.completado ? 'line-through' : 'none', color: c.completado ? '#475569' : '#fff', width: '100%' }}>
-                      {c.completado ? '✅ ' : '⏳ '} {c.nombre}
-                    </span>
-                    <button onClick={() => eliminarMenteItem(c.id, 'curso')} style={styles.deleteBtn}>🗑️</button>
-                  </li>
-                ))}
-              </ul>
+              <h2 style={styles.sectionTitle}>🏫 Progreso de Materias y Cursos</h2>
+              {(appData.crecimiento?.cursos || []).map(c => {
+                const actual = c.paginaActual || 0;
+                const total = c.paginasTotales || 10;
+                const porcentaje = Math.round((actual / total) * 100) || 0;
+
+                return (
+                  <div key={c.id} style={{ ...styles.bookItem, border: c.completado ? '1px solid #10b98140' : '1px solid #1e293b', marginBottom: '12px', padding: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <span style={{ color: c.completado ? '#10b981' : '#fff', fontWeight: '600', fontSize: '13px' }}>
+                        {c.completado ? '✅ ' : '⏳ '} {c.nombre}
+                      </span>
+                      <button onClick={() => eliminarMenteItem(c.id, 'curso')} style={styles.deleteBtn}>🗑️</button>
+                    </div>
+
+                    {/* Barra de Progreso */}
+                    <div style={{ ...styles.progressBarBg, height: '5px', marginBottom: '8px' }}>
+                      <div style={{ 
+                        ...styles.progressBarFill, 
+                        width: `${porcentaje}%`, 
+                        backgroundColor: c.completado ? '#10b981' : '#00b4d8' 
+                      }}></div>
+                    </div>
+
+                    {/* Controles de avance */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '11px', color: '#64748b' }}>
+                        Clases: <strong>{actual} / {total}</strong> ({porcentaje}%)
+                      </span>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button 
+                          type="button"
+                          onClick={() => avanzarLeccionCurso(c.id, -1)} 
+                          style={{ ...styles.actionBtn, padding: '3px 8px', fontSize: '10px' }}
+                        >
+                          -
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => avanzarLeccionCurso(c.id, 1)} 
+                          style={{ 
+                            ...styles.actionBtn, 
+                            padding: '3px 10px', 
+                            fontSize: '10px', 
+                            backgroundColor: c.completado ? '#10b98115' : '#00b4d815', 
+                            color: c.completado ? '#10b981' : '#00b4d8',
+                            borderColor: c.completado ? '#10b98140' : '#00b4d840'
+                          }}
+                        >
+                          + Lección
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
