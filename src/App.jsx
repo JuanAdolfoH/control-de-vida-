@@ -1,324 +1,524 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 
-// Sistema de diseño Ultra-Premium con Animación Ambiental Viva e Inyección de Scanlines
-const styles = {
-  container: { 
-    backgroundColor: '#02040a',
-    backgroundImage: `
-      linear-gradient(rgba(18, 100, 240, 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(18, 100, 240, 0.04) 1px, transparent 1px),
-      linear-gradient(0deg, rgba(255, 255, 255, 0.01) 50%, rgba(0, 0, 0, 0.25) 50%)
-    `,
-    backgroundSize: '45px 45px, 45px 45px, 100% 4px',
-    color: '#cbd5e1', 
-    minHeight: '100vh', 
-    width: '100vw',
-    margin: 0,
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    padding: '40px 20px', 
-    boxSizing: 'border-box',
-    fontFamily: '"Segoe UI", Roboto, Helvetica, Arial, sans-serif', 
-    letterSpacing: '0.2px',
-    overflowX: 'hidden',
-    overflowY: 'auto',
-    zIndex: 1
-  },
-  header: { textAlign: 'center', marginBottom: '25px', position: 'relative', zIndex: 2 },
-  clockText: { fontSize: '12px', color: '#64748b', fontWeight: '600', letterSpacing: '1px', marginBottom: '8px' },
-  title: { fontSize: '26px', fontWeight: '700', color: '#ffffff', margin: '0 0 6px 0', letterSpacing: '1.5px', textTransform: 'uppercase', background: 'linear-gradient(to right, #ffffff, #00b4d8, #00f5d4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' },
-  subtitle: { fontSize: '11px', color: '#00f5d4', margin: 0, letterSpacing: '3px', fontWeight: '600', textTransform: 'uppercase', textShadow: '0 0 10px rgba(0, 245, 212, 0.3)' },
-  
-  quoteCard: { maxWidth: '540px', margin: '0 auto 20px auto', textAlign: 'center', padding: '14px', backgroundColor: '#00b4d803', borderRadius: '14px', border: '1px dashed #00b4d820', position: 'relative', zIndex: 2 },
-  quoteText: { fontSize: '12px', fontStyle: 'italic', color: '#00b4d8', margin: 0, lineHeight: '1.4', fontWeight: '500' },
+// Constantes globales
+const DIAS_SEMANA = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
-  dashRow: { display: 'flex', justifyContent: 'space-between', gap: '12px', maxWidth: '540px', margin: '0 auto 25px auto', position: 'relative', zIndex: 2 },
-  dashCard: { flex: 1, backgroundColor: '#070f2199', backdropFilter: 'blur(16px)', border: '1px solid #1e293b', padding: '12px', borderRadius: '14px', textAlign: 'center', boxShadow: '0 4px 30px rgba(0, 0, 0, 0.2)' },
-  dashLabel: { fontSize: '10px', color: '#64748b', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '4px' },
-  dashVal: { fontSize: '15px', fontWeight: '600', color: '#ffffff', margin: 0 },
-
-  nav: { display: 'flex', justifyContent: 'center', gap: '12px', marginBottom: '30px', flexWrap: 'wrap', position: 'relative', zIndex: 2 },
-  button: { padding: '10px 24px', backgroundColor: '#070f21', color: '#9ca3af', border: '1px solid #1e293b', borderRadius: '30px', cursor: 'pointer', fontSize: '12px', fontWeight: '500', transition: 'all 0.2s ease' },
-  activeButton: { padding: '10px 24px', backgroundColor: '#00b4d812', color: '#00b4d8', border: '1px solid #00b4d8', borderRadius: '30px', cursor: 'pointer', fontSize: '12px', fontWeight: '600', boxShadow: '0 0 20px rgba(0, 180, 216, 0.2)' },
-  
-  main: { maxWidth: '540px', margin: '0 auto', position: 'relative', zIndex: 2 },
-  card: { backgroundColor: '#060b19bc', backdropFilter: 'blur(16px)', padding: '24px', borderRadius: '20px', border: '1px solid #1e293b', marginBottom: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.5), inset 0 1px 0px rgba(255,255,255,0.05)' },
-  sectionTitle: { fontSize: '13px', fontWeight: '600', color: '#ffffff', marginTop: '0', marginBottom: '18px', letterSpacing: '1.5px', textTransform: 'uppercase', borderLeft: '3px solid #00b4d8', paddingLeft: '10px' },
-  
-  input: { width: '100%', padding: '12px 16px', backgroundColor: '#02040a', color: '#ffffff', border: '1px solid #1e293b', borderRadius: '12px', marginBottom: '12px', boxSizing: 'border-box', fontSize: '13px', outline: 'none' },
-  select: { width: '100%', padding: '12px 16px', backgroundColor: '#02040a', color: '#ffffff', border: '1px solid #1e293b', borderRadius: '12px', marginBottom: '12px', boxSizing: 'border-box', fontSize: '13px', outline: 'none' },
-  fileLabel: { display: 'block', width: '100%', padding: '12px 16px', backgroundColor: '#00b4d805', color: '#00b4d8', border: '1px dashed #00b4d840', borderRadius: '12px', marginBottom: '12px', boxSizing: 'border-box', fontSize: '12px', textAlign: 'center', cursor: 'pointer', fontWeight: '500' },
-  submitBtn: { width: '100%', padding: '12px', backgroundColor: '#00b4d8', color: '#ffffff', border: 'none', borderRadius: '12px', fontWeight: '600', cursor: 'pointer', fontSize: '13px', boxShadow: '0 4px 12px rgba(0, 180, 216, 0.2)' },
-  
-  list: { listStyle: 'none', padding: 0, margin: 0 },
-  listItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', backgroundColor: '#02040a', borderRadius: '12px', marginBottom: '10px', fontSize: '13px', border: '1px solid #1e293b' },
-  deleteBtn: { background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '13px', marginLeft: '10px' },
-  badgeGasto: { color: '#f87171', fontWeight: '600' },
-  badgeIngreso: { color: '#4ade80', fontWeight: '600' },
-  
-  progressBlock: { marginBottom: '20px' },
-  progressLabel: { display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px', color: '#f1f5f9' },
-  progressBarBg: { width: '100%', height: '8px', backgroundColor: '#02040a', borderRadius: '6px', overflow: 'hidden', marginBottom: '10px', border: '1px solid #1e293b' },
-  progressBarFill: { height: '100%', backgroundColor: '#00b4d8', borderRadius: '6px', transition: 'width 0.4s ease' },
-  actionBtn: { padding: '7px 12px', backgroundColor: '#1e293b', color: '#00b4d8', border: '1px solid #00b4d820', borderRadius: '8px', cursor: 'pointer', fontSize: '11px', fontWeight: '600' },
-  openPdfBtn: { padding: '7px 12px', backgroundColor: '#00b4d812', color: '#00b4d8', border: '1px solid #00b4d850', borderRadius: '8px', cursor: 'pointer', fontSize: '11px', fontWeight: '600' },
-  resetBtn: { background: 'none', border: 'none', color: '#64748b', fontSize: '11px', cursor: 'pointer', fontWeight: '500' },
-
-  menuBox: { backgroundColor: '#02040a', padding: '16px', borderRadius: '12px', border: '1px solid #1e293b', marginTop: '12px' },
-  menuItem: { fontSize: '12px', marginBottom: '10px', color: '#94a3b8', lineHeight: '1.5' },
-  menuTag: { color: '#00b4d8', fontWeight: '600', marginRight: '8px', display: 'inline-block', minWidth: '75px' },
-  bookItem: { backgroundColor: '#02040a', padding: '16px', borderRadius: '12px', marginBottom: '12px', border: '1px solid #1e293b' },
-
-  pomoWrapper: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#02040a', padding: '16px', borderRadius: '12px', border: '1px solid #1e293b' },
-  pomoTime: { fontSize: '28px', fontWeight: '700', color: '#ffffff', fontFamily: 'monospace', letterSpacing: '1px' },
-  pomoBtnGroup: { display: 'flex', gap: '8px' },
-
-  textarea: { width: '100%', height: '90px', backgroundColor: '#02040a', color: '#f1f5f9', border: '1px solid #1e293b', borderRadius: '12px', padding: '12px', fontSize: '13px', outline: 'none', resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit', lineHeight: '1.4' },
-  
-  weekRow: { display: 'flex', justifyContent: 'space-between', gap: '6px', marginTop: '15px', backgroundColor: '#02040a', padding: '12px', borderRadius: '12px', border: '1px solid #1e293b' },
-  weekDayBox: { flex: 1, textAlign: 'center', padding: '6px 4px', borderRadius: '8px' },
-  weekDayName: { fontSize: '10px', color: '#64748b', fontWeight: '600', display: 'block', marginBottom: '4px' },
-  weekDayCircle: { width: '12px', height: '12px', borderRadius: '50%', margin: '0 auto', display: 'block' },
-
-  chartBarGroup: { marginBottom: '12px' },
-  chartLabelRow: { display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#94a3b8', marginBottom: '4px' },
-
-  calcGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' },
-  calcOutput: { backgroundColor: '#02040a', padding: '14px', borderRadius: '12px', border: '1px solid #00f5d440', marginTop: '15px', textAlign: 'center' },
-
-  victoriasGrid: { display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '15px' },
-  victoriaInput: { backgroundColor: '#02040a', border: '1px solid #1e293b', borderRadius: '8px', padding: '10px', color: '#fff', fontSize: '12px', width: '100%', boxSizing: 'border-box', outline: 'none' }
-};
-
-const FRASES_MOTIVACIONALES = [
-  "«La disciplina es hacer lo que debes hacer, incluso cuando no quieres hacerlo.»",
-  "«No bajas al nivel de tus metas, caes al nivel de tus sistemas.»",
-  "«Pequeños hábitos diarios construyen imperios a largo plazo.»",
-  "«La excelencia no es un acto, es un hábito. Domina tu día hoy.»"
+const SUGERENCIAS_MENU = [
+  { desayuno: "Claras con espinacas y avena", comida: "Pechuga de pollo con quinoa y brócoli", cena: "Ensalada de atún con aguacate" },
+  { desayuno: "Licuado de proteína con plátano", comida: "Filete de pescado con arroz integral", cena: "Tacos de lechuga con pavo molido" },
+  { desayuno: "Huevos revueltos con champiñones", comida: "Salmón a la plancha con espárragos", cena: "Queso cottage con almendras y fresas" }
 ];
 
-const OPCIONES_COMIDA = {
-  desayunos: ["3 huevos revueltos con espinacas y jitomate.", "Omelette de claras con champiñones y queso panela.", "Licuado de avena, plátano y crema de cacahuate."],
-  comidas: ["Pechuga de pollo al comal + 1 taza de arroz blanco + calabacitas.", "Filete de res magro + 1 papa mediana cocida + ensalada."],
-  cenas: ["Yogur griego sin azúcar + 1 manzana picada + nuez.", "Sándwich de pavo integral con queso panela."]
+const FRASES_MOTIVACIONALES = [
+  "El único modo de hacer un gran trabajo es amar lo que haces.",
+  "La disciplina tarde o temprano vencerá a la inteligencia.",
+  "No te detengas cuando estés cansado, detente cuando hayas terminado.",
+  "El éxito es la suma de pequeños esfuerzos repetidos día tras día."
+];
+
+// Estilos tácticos estilo "Cyberpunk/Nord" oscuros
+const styles = {
+  container: {
+    backgroundColor: '#02040a',
+    color: '#e2e8f0',
+    fontFamily: 'system-ui, -apple-system, sans-serif',
+    minHeight: '100vh',
+    padding: '20px',
+    position: 'relative',
+    overflowX: 'hidden',
+  },
+  header: {
+    textAlign: 'center',
+    marginBottom: '30px',
+    borderBottom: '1px solid #1e293b',
+    paddingBottom: '20px',
+  },
+  clockText: {
+    fontSize: '11px',
+    color: '#64748b',
+    letterSpacing: '1.5px',
+    marginBottom: '8px',
+  },
+  title: {
+    fontSize: '28px',
+    fontWeight: '800',
+    margin: '0 0 6px 0',
+    background: 'linear-gradient(to right, #00b4d8, #00f5d4)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+  },
+  subtitle: {
+    margin: 0,
+    fontSize: '12px',
+    color: '#00b4d8',
+    textTransform: 'uppercase',
+    letterSpacing: '2px',
+  },
+  quoteCard: {
+    backgroundColor: '#090d16bc',
+    border: '1px solid #1e293b',
+    borderRadius: '12px',
+    padding: '15px',
+    textAlign: 'center',
+    marginBottom: '25px',
+  },
+  quoteText: {
+    margin: 0,
+    fontStyle: 'italic',
+    fontSize: '12px',
+    color: '#94a3b8',
+  },
+  dashRow: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: '12px',
+    marginBottom: '25px',
+  },
+  dashCard: {
+    backgroundColor: '#060b19bc',
+    border: '1px solid #1e293b',
+    borderRadius: '12px',
+    padding: '12px',
+    textAlign: 'center',
+  },
+  dashLabel: {
+    fontSize: '10px',
+    color: '#64748b',
+    textTransform: 'uppercase',
+    display: 'block',
+    marginBottom: '4px',
+  },
+  dashVal: {
+    fontSize: '18px',
+    fontWeight: '700',
+    margin: 0,
+  },
+  nav: {
+    display: 'flex',
+    gap: '8px',
+    marginBottom: '25px',
+  },
+  button: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+    border: '1px solid #1e293b',
+    color: '#94a3b8',
+    padding: '12px 6px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '12px',
+    fontWeight: '600',
+    transition: 'all 0.2s',
+  },
+  activeButton: {
+    flex: 1,
+    backgroundColor: '#00b4d815',
+    border: '1px solid #00b4d8',
+    color: '#00b4d8',
+    padding: '12px 6px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '12px',
+    fontWeight: '700',
+  },
+  main: {
+    maxWidth: '650px',
+    margin: '0 auto',
+  },
+  card: {
+    backgroundColor: '#060b19bc',
+    border: '1px solid #1e293b',
+    borderRadius: '16px',
+    padding: '20px',
+    marginBottom: '20px',
+    backdropFilter: 'blur(8px)',
+  },
+  sectionTitle: {
+    fontSize: '14px',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: '1px',
+    color: '#f8fafc',
+    marginBottom: '20px',
+    borderLeft: '3px solid #00b4d8',
+    paddingLeft: '10px',
+  },
+  resetBtn: {
+    backgroundColor: 'transparent',
+    border: 'none',
+    color: '#ef4444',
+    fontSize: '11px',
+    fontWeight: '600',
+    cursor: 'pointer',
+  },
+  progressBlock: {
+    marginBottom: '18px',
+  },
+  progressLabel: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontSize: '12px',
+    marginBottom: '6px',
+  },
+  progressBarBg: {
+    backgroundColor: '#1e293b',
+    height: '8px',
+    borderRadius: '999px',
+    overflow: 'hidden',
+    marginBottom: '8px',
+  },
+  progressBarFill: {
+    backgroundColor: '#00b4d8',
+    height: '100%',
+    borderRadius: '999px',
+    transition: 'width 0.4s ease-out',
+  },
+  actionBtn: {
+    backgroundColor: '#00b4d812',
+    border: '1px solid #00b4d833',
+    color: '#00b4d8',
+    padding: '6px 12px',
+    borderRadius: '6px',
+    fontSize: '11px',
+    fontWeight: '600',
+    cursor: 'pointer',
+  },
+  input: {
+    width: '100%',
+    backgroundColor: '#090d16',
+    border: '1px solid #1e293b',
+    borderRadius: '8px',
+    padding: '10px',
+    color: '#fff',
+    fontSize: '13px',
+    marginBottom: '10px',
+    boxSizing: 'border-box',
+  },
+  select: {
+    width: '100%',
+    backgroundColor: '#090d16',
+    border: '1px solid #1e293b',
+    borderRadius: '8px',
+    padding: '10px',
+    color: '#fff',
+    fontSize: '13px',
+    marginBottom: '10px',
+    boxSizing: 'border-box',
+  },
+  submitBtn: {
+    width: '100%',
+    backgroundColor: '#00b4d8',
+    border: 'none',
+    borderRadius: '8px',
+    padding: '12px',
+    color: '#02040a',
+    fontWeight: '700',
+    cursor: 'pointer',
+    fontSize: '13px',
+  },
+  list: {
+    listStyle: 'none',
+    padding: 0,
+    margin: 0,
+  },
+  listItem: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '12px 14px',
+    border: '1px solid #1e293b',
+    borderRadius: '8px',
+    marginBottom: '8px',
+    backgroundColor: '#02040a',
+  },
+  deleteBtn: {
+    backgroundColor: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '12px',
+  },
+  weekRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginTop: '20px',
+  },
+  weekDayBox: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: '6px',
+    borderRadius: '6px',
+  },
+  weekDayName: {
+    fontSize: '9px',
+    color: '#64748b',
+    marginBottom: '4px',
+  },
+  weekDayCircle: {
+    width: '10px',
+    height: '10px',
+    borderRadius: '50%',
+  },
+  calcGrid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '10px',
+    marginBottom: '10px',
+  },
+  calcOutput: {
+    backgroundColor: '#02040a',
+    border: '1px solid #00f5d440',
+    borderRadius: '10px',
+    padding: '15px',
+    textAlign: 'center',
+    marginTop: '15px',
+  },
+  badgeGasto: {
+    backgroundColor: '#ef444415',
+    color: '#ef4444',
+    padding: '2px 6px',
+    borderRadius: '4px',
+    fontSize: '10px',
+    fontWeight: 'bold',
+  },
+  badgeIngreso: {
+    backgroundColor: '#4ade8015',
+    color: '#4ade80',
+    padding: '2px 6px',
+    borderRadius: '4px',
+    fontSize: '10px',
+    fontWeight: 'bold',
+  },
+  pomoWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: '10px 0',
+  },
+  pomoTime: {
+    fontSize: '48px',
+    fontWeight: '800',
+    color: '#ffffff',
+    fontFamily: 'monospace',
+    letterSpacing: '2px',
+    marginBottom: '15px',
+  },
+  pomoBtnGroup: {
+    display: 'flex',
+    gap: '10px',
+  },
+  fileLabel: {
+    display: 'block',
+    backgroundColor: '#00b4d80d',
+    border: '1px dashed #00b4d844',
+    borderRadius: '8px',
+    padding: '15px',
+    textAlign: 'center',
+    cursor: 'pointer',
+    fontSize: '11px',
+    color: '#00b4d8',
+    marginBottom: '10px',
+  },
+  openPdfBtn: {
+    backgroundColor: '#00b4d820',
+    border: '1px solid #00b4d850',
+    color: '#00b4d8',
+    padding: '4px 8px',
+    borderRadius: '4px',
+    fontSize: '10px',
+    fontWeight: '600',
+    cursor: 'pointer',
+  },
+  bookItem: {
+    border: '1px solid #1e293b',
+    borderRadius: '10px',
+    padding: '14px',
+    marginBottom: '10px',
+    backgroundColor: '#02040a',
+  },
+  chartBarGroup: {
+    marginBottom: '14px',
+  },
+  chartLabelRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontSize: '11px',
+    marginBottom: '4px',
+    color: '#94a3b8',
+  },
+  victoriasGrid: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+    marginBottom: '12px',
+  },
+  victoriaInput: {
+    width: '100%',
+    backgroundColor: '#02040a',
+    border: 'none',
+    borderBottom: '1px solid #1e293b',
+    padding: '8px',
+    color: '#00f5d4',
+    fontSize: '12px',
+    boxSizing: 'border-box',
+  },
+  textarea: {
+    width: '100%',
+    height: '100px',
+    backgroundColor: '#02040a',
+    border: '1px solid #1e293b',
+    borderRadius: '8px',
+    padding: '10px',
+    color: '#fff',
+    fontSize: '12px',
+    resize: 'none',
+    boxSizing: 'border-box',
+  },
+  menuBox: {
+    backgroundColor: '#02040a',
+    padding: '12px',
+    borderRadius: '10px',
+    fontSize: '12px',
+    lineHeight: '1.6',
+  },
+  menuItem: {
+    marginBottom: '8px',
+    color: '#e2e8f0',
+  },
+  menuTag: {
+    color: '#00b4d8',
+    fontWeight: '700',
+    marginRight: '6px',
+  }
 };
 
-const DIAS_SEMANA = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
-
 function App() {
+  // Inicialización de estado local con persistencia automática en LocalStorage
   const [appData, setAppData] = useState(() => {
-    const localData = localStorage.getItem('control_vida_data');
-    if (localData) {
-      const parsed = JSON.parse(localData);
-      
-      // Asegurar que las llaves nuevas existan
-      if (!parsed.filamentos) parsed.filamentos = [];
-      if (!parsed.colaImpresion) parsed.colaImpresion = [];
-      if (!parsed.ahorroInversion) parsed.ahorroInversion = { meta: 2000, actual: 0, concepto: 'Comprar Extrusor Directo', pctRetencion: 15 };
-      if (!parsed.fitness.historialAgua) parsed.fitness.historialAgua = [2.1, 1.8, 3.0, 2.4, 2.7, 1.5, 3.0];
-      if (!parsed.fitness.historialCaminata) parsed.fitness.historialCaminata = [30, 45, 15, 0, 45, 30, 45];
-      
-      // Inicializar submódulos de Mantenimiento Ender V3 SE y Victorias Diarias
-      if (!parsed.mantenimiento3D) {
-        parsed.mantenimiento3D = {
-          horasUsoAcumuladas: 0,
-          ejesXyLubricado: 0, // max 50h
-          tornillosCamaAjustados: 0, // max 100h
-          boquillaLimpia: 0 // max 150h
-        };
-      }
-      if (!parsed.victoriasDia) {
-        parsed.victoriasDia = ['', '', ''];
-      }
-      return parsed;
+    const saved = localStorage.getItem('comandoTacticoAppData');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { console.error(e); }
     }
     return {
-      fitness: { 
-        pesoActual: '', 
-        historialPeso: [], 
-        aguaVasos: 0, 
-        caminataMinutos: 0, 
-        comidaLimpia: false, 
-        rachaDias: 0, 
-        ultimaRachaFecha: '', 
-        registrosSemanales: {0:false,1:false,2:false,3:false,4:false,5:false,6:false},
-        historialAgua: [2.1, 1.8, 3.0, 2.4, 2.7, 1.5, 3.0],
-        historialCaminata: [30, 45, 15, 0, 45, 30, 45]
+      fitness: {
+        aguaVasos: 0,
+        caminataMinutos: 0,
+        comidaLimpia: false,
+        rachaDias: 0,
+        ultimaRachaFecha: '',
+        registrosSemanales: { 0: false, 1: false, 2: false, 3: false, 4: false, 5: false, 6: false },
+        historialAgua: [0, 0, 0, 0, 0, 0, 0],
+        historialCaminata: [0, 0, 0, 0, 0, 0, 0],
+        historialPeso: [],
+        pesoActual: ''
       },
-      finanzas: { ingresos: [], gastos: [], limitePresupuesto: 5000 },
-      filamentos: [],
-      colaImpresion: [],
-      ahorroInversion: { meta: 2000, actual: 0, concepto: 'Comprar Extrusor Directo', pctRetencion: 15 },
-      mantenimiento3D: { horasUsoAcumuladas: 0, ejesXyLubricado: 0, tornillosCamaAjustados: 0, boquillaLimpia: 0 },
       victoriasDia: ['', '', ''],
+      finanzas: {
+        gastos: [],
+        ingresos: [],
+        limitePresupuesto: 5000
+      },
+      filamentos: [],
+      ahorroInversion: { meta: 2000, actual: 0, concepto: 'Comprar Extrusor Directo', pctRetencion: 15 },
+      colaImpresion: [],
+      mantenimiento3D: { horasUsoAcumuladas: 0, ejesXyLubricado: 0, tornillosCamaAjustados: 0, boquillaLimpia: 0 },
       crecimiento: { cursos: [], lecturas: [] },
       notasRapidas: ''
     };
   });
 
-  const [tab, setTab] = useState('fitness');
-  const [inputPeso, setInputPeso] = useState('');
-  const [finanzasForm, setFinanzasForm] = useState({ concepto: '', monto: '', tipo: 'gasto', categoria: 'Otros', rolloAsociadoId: '' });
-  const [limiteInput, setLimiteInput] = useState(appData.finanzas?.limitePresupuesto || 5000);
-  const [crecimientoForm, setCrecimientoForm] = useState({ nombre: '', tipo: 'curso', paginasTotales: '200' });
-  const [pdfFile, setPdfFile] = useState(null);
-  const [pdfUrlMap, setPdfUrlMap] = useState({});
-  const [sugerenciaDia, setSugerenciaDia] = useState({ desayuno: '', comida: '', cena: '' });
-  const [fraseDia, setFraseDia] = useState('');
-
-  const [tiempoActual, setTiempoActual] = useState(new Date());
-  const [pomoSegundos, setPomoSegundos] = useState(1500);
-  const [pomoActivo, setPomoActivo] = useState(false);
-  const pomoIntervalo = useRef(null);
-
-  // Estados de los submódulos de impresión 3D
-  const [nuevoFilamento, setNuevoFilamento] = useState({ nombre: '', color: 'Negro', gramos: '1000', precio: '400' });
-  const [nuevoTrabajo, setNuevoTrabajo] = useState({ pieza: '', prioridad: 'Media', horasEstimadas: '4', fechaLimite: '' });
-  const [ahorroForm, setAhorroForm] = useState({ meta: appData.ahorroInversion?.meta || 2000, concepto: appData.ahorroInversion?.concepto || 'Comprar Extrusor Directo', pctRetencion: appData.ahorroInversion?.pctRetencion || 15 });
-
-  // Estado de la calculadora 3D integrada con el inventario
-  const [calc3D, setCalc3D] = useState({
-    nombrePieza: '',
-    rolloSeleccionadoId: '',
-    precioRollo: '400',
-    gramosRollo: '1000',
-    gramosPieza: '50',
-    horasImpresion: '4',
-    costoHoraLuz: '5',
-    porcentajeGanancia: '100'
-  });
-  const [precioSugerido3D, setPrecioSugerido3D] = useState(0);
-
-  // Inyección dinámica de keyframes de CSS
+  // Efecto para sincronizar el estado completo con el almacenamiento del navegador
   useEffect(() => {
-    const styleSheet = document.createElement("style");
-    styleSheet.type = "text/css";
-    styleSheet.innerText = `
-      @keyframes auroraMover {
-        0% { transform: translate(0px, 0px) scale(1); }
-        50% { transform: translate(60px, -40px) scale(1.15); }
-        100% { transform: translate(0px, 0px) scale(1); }
-      }
-      @keyframes auroraMoverDos {
-        0% { transform: translate(0px, 0px) scale(1.1); }
-        50% { transform: translate(-40px, 50px) scale(0.9); }
-        100% { transform: translate(0px, 0px) scale(1.1); }
-      }
-      .aurora-uno {
-        position: fixed; top: -10%; right: -10%; width: 550px; height: 550px;
-        background: radial-gradient(circle, rgba(0, 180, 216, 0.22) 0%, rgba(0, 245, 212, 0.04) 45%, transparent 70%);
-        filter: blur(75px); animation: auroraMover 22s infinite ease-in-out; pointer-events: none; z-index: 0;
-      }
-      .aurora-dos {
-        position: fixed; bottom: -15%; left: -10%; width: 550px; height: 550px;
-        background: radial-gradient(circle, rgba(18, 100, 240, 0.18) 0%, rgba(12, 33, 53, 0.4) 50%, transparent 70%);
-        filter: blur(75px); animation: auroraMoverDos 28s infinite ease-in-out; pointer-events: none; z-index: 0;
-      }
-    `;
-    document.head.appendChild(styleSheet);
-    return () => document.head.removeChild(styleSheet);
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('control_vida_data', JSON.stringify(appData));
+    localStorage.setItem('comandoTacticoAppData', JSON.stringify(appData));
   }, [appData]);
 
+  // Estados del Pomodoro e interfaz básica
+  const [tab, setTab] = useState('fitness');
+  const [tiempoActual, setTiempoActual] = useState(new Date());
+  const [fraseDia] = useState(() => FRASES_MOTIVACIONALES[Math.floor(Math.random() * FRASES_MOTIVACIONALES.length)]);
+  const [sugerenciaDia, setSugerenciaDia] = useState(() => SUGERENCIAS_MENU[0]);
+  const [inputPeso, setInputPeso] = useState('');
+  const [limiteInput, setLimiteInput] = useState('');
+  
+  // Pomodoro
+  const [pomoSegundos, setPomoSegundos] = useState(1500); // 25 min
+  const [pomoActivo, setPomoActivo] = useState(false);
+
+  // Formulario Finanzas
+  const [finanzasForm, setFinanzasForm] = useState({ concepto: '', monto: '', tipo: 'gasto', categoria: 'Otros', rolloAsociadoId: '' });
+  const [ahorroForm, setAhorroForm] = useState({ concepto: '', meta: '', pctRetencion: '' });
+  const [nuevoFilamento, setNuevoFilamento] = useState({ nombre: '', color: 'Negro', gramos: '1000', precio: '400' });
+
+  // Calculadora 3D
+  const [calc3D, setCalc3D] = useState({ nombrePieza: '', rolloSeleccionadoId: '', precioRollo: '400', gramosRollo: '1000', gramosPieza: '50', horasImpresion: '5', costoHoraLuz: '1.5', porcentajeGanancia: '150' });
+
+  // Cola Impresión 3D
+  const [nuevoTrabajo, setNuevoTrabajo] = useState({ pieza: '', prioridad: 'Media', horasEstimadas: '4', fechaLimite: '' });
+
+  // Crecimiento
+  const [crecimientoForm, setCrecimientoForm] = useState({ nombre: '', tipo: 'curso', paginasTotales: '10' });
+  const [pdfFile, setPdfFile] = useState(null);
+  const [pdfUrlMap, setPdfUrlMap] = useState({});
+
+  // Reloj de tiempo real
   useEffect(() => {
     const timer = setInterval(() => setTiempoActual(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // Lógica de cálculo en tiempo real del cotizador 3D
+  // Timer Pomodoro
   useEffect(() => {
-    let pRollo = parseFloat(calc3D.precioRollo) || 0;
-    let gRollo = parseFloat(calc3D.gramosRollo) || 1;
-
-    if (calc3D.rolloSeleccionadoId && appData.filamentos) {
-      const filSelect = appData.filamentos.find(f => f.id.toString() === calc3D.rolloSeleccionadoId.toString());
-      if (filSelect) {
-        pRollo = parseFloat(filSelect.precio) || 0;
-        gRollo = parseFloat(filSelect.gramosOriginales) || 1000;
-      }
-    }
-
-    const gPieza = parseFloat(calc3D.gramosPieza) || 0;
-    const horas = parseFloat(calc3D.horasImpresion) || 0;
-    const cHora = parseFloat(calc3D.costoHoraLuz) || 0;
-    const gananciaPct = parseFloat(calc3D.porcentajeGanancia) || 0;
-
-    const costoMaterial = (pRollo / gRollo) * gPieza;
-    const costoEnergia = horas * cHora;
-    const costoBaseTotal = costoMaterial + costoEnergia;
-    
-    const precioFinal = costoBaseTotal + (costoBaseTotal * (gananciaPct / 100));
-    setPrecioSugerido3D(Math.round(precioFinal));
-  }, [calc3D, appData.filamentos]);
-
-  useEffect(() => {
-    if (pomoActivo) {
-      pomoIntervalo.current = setInterval(() => {
-        setPomoSegundos(prev => {
-          if (prev <= 1) {
-            clearInterval(pomoIntervalo.current);
-            setPomoActivo(false);
-            alert("⚠️ ¡Sesión Pomodoro Finalizada! Buen trabajo.");
-            return 1500;
-          }
-          return prev - 1;
-        });
+    let interval = null;
+    if (pomoActivo && pomoSegundos > 0) {
+      interval = setInterval(() => {
+        setPomoSegundos(prev => prev - 1);
       }, 1000);
-    } else {
-      clearInterval(pomoIntervalo.current);
+    } else if (pomoSegundos === 0) {
+      setPomoActivo(false);
+      alert("🎯 ¡Pomodoro Terminado! Tómate un respiro, Comandante.");
     }
-    return () => clearInterval(pomoIntervalo.current);
-  }, [pomoActivo]);
+    return () => clearInterval(interval);
+  }, [pomoActivo, pomoSegundos]);
 
   const formatoPomo = () => {
-    const mins = Math.floor(pomoSegundos / 60).toString().padStart(2, '0');
-    const secs = (pomoSegundos % 60).toString().padStart(2, '0');
-    return `${mins}:${secs}`;
+    const mins = Math.floor(pomoSegundos / 60);
+    const secs = pomoSegundos % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const obtenerSaludo = () => {
+    const hrs = tiempoActual.getHours();
+    if (hrs < 12) return 'Buenos Días, Comandante';
+    if (hrs < 18) return 'Buenas Tardes, Comandante';
+    return 'Buenas Noches, Comandante';
   };
 
   const generarMenuSano = () => {
-    setSugerenciaDia({
-      desayuno: OPCIONES_COMIDA.desayunos[Math.floor(Math.random() * OPCIONES_COMIDA.desayunos.length)] || "",
-      comida: OPCIONES_COMIDA.comidas[Math.floor(Math.random() * OPCIONES_COMIDA.comidas.length)] || "",
-      cena: OPCIONES_COMIDA.cenas[Math.floor(Math.random() * OPCIONES_COMIDA.cenas.length)] || ""
-    });
+    const rdn = SUGERENCIAS_MENU[Math.floor(Math.random() * SUGERENCIAS_MENU.length)];
+    setSugerenciaDia(rdn);
   };
 
-  useEffect(() => { 
-    generarMenuSano(); 
-    setFraseDia(FRASES_MOTIVACIONALES[Math.floor(Math.random() * FRASES_MOTIVACIONALES.length)]);
-  }, []);
-
-  const obtenerSaludo = () => {
-    const hora = tiempoActual.getHours();
-    if (hora < 12) return "Buenos días, Comandante";
-    if (hora < 19) return "Buenas tardes, Comandante";
-    return "Buenas noches, Comandante";
-  };
-
-  // Acciones Diarias del Cuerpo
+  // Lógica Física / Hábitos
   const agregarAgua = () => {
     setAppData(prev => {
-      const nuevoVasos = Math.min((prev.fitness?.aguaVasos || 0) + 1, 10);
-      const historialMod = [...(prev.fitness?.historialAgua || [])];
-      historialMod[historialMod.length - 1] = parseFloat((nuevoVasos * 0.3).toFixed(1));
-      return { ...prev, fitness: { ...prev.fitness, aguaVasos: nuevoVasos, historialAgua: historialMod } };
+      const actual = (prev.fitness?.aguaVasos || 0) + 1;
+      const hist = [...(prev.fitness?.historialAgua || [0,0,0,0,0,0,0])];
+      const hoyIndex = new Date().getDay();
+      hist[hoyIndex] = parseFloat((actual * 0.3).toFixed(1));
+      return { ...prev, fitness: { ...prev.fitness, aguaVasos: actual, historialAgua: hist } };
     });
   };
 
   const agregarCaminata = () => {
     setAppData(prev => {
-      const nuevosMin = Math.min((prev.fitness?.caminataMinutos || 0) + 15, 45);
-      const historialMod = [...(prev.fitness?.historialCaminata || [])];
-      historialMod[historialMod.length - 1] = nuevosMin;
-      return { ...prev, fitness: { ...prev.fitness, caminataMinutos: nuevosMin, historialCaminata: historialMod } };
+      const actual = (prev.fitness?.caminataMinutos || 0) + 15;
+      const hist = [...(prev.fitness?.historialCaminata || [0,0,0,0,0,0,0])];
+      const hoyIndex = new Date().getDay();
+      hist[hoyIndex] = actual;
+      return { ...prev, fitness: { ...prev.fitness, caminataMinutos: actual, historialCaminata: hist } };
     });
   };
-  
+
   const toggleComida = () => {
     setAppData(prev => {
       const nuevaComidaLimpia = !prev.fitness?.comidaLimpia;
@@ -349,7 +549,6 @@ function App() {
     setInputPeso('');
   };
 
-  // Manejo de Victorias del Día
   const manejarCambioVictoria = (index, valor) => {
     setAppData(prev => {
       const copiaVictorias = [...(prev.victoriasDia || ['', '', ''])];
@@ -412,6 +611,20 @@ function App() {
 
     setFinanzasForm({ concepto: '', monto: '', tipo: 'gasto', categoria: 'Otros', rolloAsociadoId: '' });
   };
+
+  // Cálculo Sugerido 3D
+  let costoFilamentoUsado = 0;
+  if (calc3D.rolloSeleccionadoId) {
+    const rollo = (appData.filamentos || []).find(f => f.id.toString() === calc3D.rolloSeleccionadoId.toString());
+    if (rollo) {
+      costoFilamentoUsado = (rollo.precio / rollo.gramosOriginales) * parseFloat(calc3D.gramosPieza || 0);
+    }
+  } else {
+    costoFilamentoUsado = (parseFloat(calc3D.precioRollo || 400) / parseFloat(calc3D.gramosRollo || 1000)) * parseFloat(calc3D.gramosPieza || 0);
+  }
+  const costoLuzUsado = parseFloat(calc3D.horasImpresion || 0) * parseFloat(calc3D.costoHoraLuz || 1.5);
+  const costoTotalBase = costoFilamentoUsado + costoLuzUsado;
+  const precioSugerido3D = Math.round(costoTotalBase * (1 + (parseFloat(calc3D.porcentajeGanancia || 150) / 100)));
 
   const inyectarCotizacionAIngreso = () => {
     const nombre = calc3D.nombrePieza.trim() || 'Pieza';
@@ -545,7 +758,7 @@ function App() {
     const pctAhorroPorProyecto = promedioVenta * ((appData.ahorroInversion?.pctRetencion || 15) / 100);
     const proyectosFaltantes = Math.ceil(faltante / pctAhorroPorProyecto);
 
-    return `Te faltan $${faltante} USD. Con tu promedio de venta actual ($${Math.round(promedioVenta)}), necesitas entregar aprox. ${proyectosFaltantes} proyectos para financiar tu meta.`;
+    return `Te faltan $${faltante} MXN. Con tu promedio de venta actual ($${Math.round(promedioVenta)}), necesitas entregar aprox. ${proyectosFaltantes} proyectos para financiar tu meta.`;
   };
 
   // Crecimiento y Universidad
@@ -563,18 +776,42 @@ function App() {
   };
 
   const agregarCrecimiento = (e) => {
-    e.preventDefault(); if (!crecimientoForm.nombre) return;
+    e.preventDefault(); 
+    if (!crecimientoForm.nombre) return;
+    
     const idUnico = Date.now();
     if (pdfFile) {
       const blobUrl = URL.createObjectURL(pdfFile);
       setPdfUrlMap(prev => ({ ...prev, [idUnico]: blobUrl }));
     }
-    const nuevoItem = { id: idUnico, nombre: crecimientoForm.nombre, completado: false, paginaActual: 0, paginasTotales: parseInt(crecimientoForm.paginasTotales) || 100, tieneArchivo: !!pdfFile };
+
+    // Si es curso tomamos el input de paginasTotales como las clases. Si está vacío ponemos 10 por defecto.
+    const clasesTotales = crecimientoForm.tipo === 'curso' 
+      ? (parseInt(crecimientoForm.paginasTotales) || 10) 
+      : (parseInt(crecimientoForm.paginasTotales) || 100);
+
+    const nuevoItem = { 
+      id: idUnico, 
+      nombre: crecimientoForm.nombre, 
+      completado: false, 
+      paginaActual: 0, 
+      paginasTotales: clasesTotales, 
+      tieneArchivo: !!pdfFile 
+    };
+
     setAppData(prev => {
       const crec = prev.crecimiento || { cursos: [], lecturas: [] };
-      return { ...prev, crecimiento: { ...crec, cursos: crecimientoForm.tipo === 'curso' ? [...(crec.cursos || []), nuevoItem] : (crec.cursos || []), lecturas: crecimientoForm.tipo === 'libro' ? [...(crec.lecturas || []), nuevoItem] : (crec.lecturas || []) } };
+      return { 
+        ...prev, 
+        crecimiento: { 
+          ...crec, 
+          cursos: crecimientoForm.tipo === 'curso' ? [...(crec.cursos || []), nuevoItem] : (crec.cursos || []), 
+          lecturas: crecimientoForm.tipo === 'libro' ? [...(crec.lecturas || []), nuevoItem] : (crec.lecturas || []) 
+        } 
+      };
     });
-    setCrecimientoForm({ nombre: '', tipo: 'curso', paginasTotales: '200' });
+
+    setCrecimientoForm({ nombre: '', tipo: 'curso', paginasTotales: '10' });
     setPdfFile(null);
   };
 
@@ -591,16 +828,37 @@ function App() {
     });
   };
 
+  const avanzarLeccionCurso = (id, paso) => {
+    setAppData(prev => {
+      const cursosActualizados = (prev.crecimiento?.cursos || []).map(curso => {
+        if (curso.id === id) {
+          const actual = curso.paginaActual || 0;
+          const total = curso.paginasTotales || 10;
+          const nuevaClase = Math.max(0, Math.min(actual + paso, total));
+          return { 
+            ...curso, 
+            paginaActual: nuevaClase, 
+            completado: nuevaClase === total 
+          };
+        }
+        return curso;
+      });
+      return { 
+        ...prev, 
+        crecimiento: { 
+          ...(prev.crecimiento || { cursos: [], lecturas: [] }), 
+          cursos: cursosActualizados 
+        } 
+      };
+    });
+  };
+
   const eliminarMenteItem = (id, tipo) => {
     const propiedad = tipo === 'curso' ? 'cursos' : 'lecturas';
     setAppData(prev => ({ ...prev, crecimiento: { ...prev.crecimiento, [propiedad]: (prev.crecimiento?.[propiedad] || []).filter(item => item.id !== id) } }));
   };
 
-  const toggleCursoItem = (id) => {
-    const lista = (appData.crecimiento?.cursos || []).map(c => c.id === id ? { ...c, completado: !c.completado } : c);
-    setAppData(prev => ({ ...prev, crecimiento: { ...(prev.crecimiento || { cursos: [], lecturas: [] }), cursos: lista } }));
-  };
-
+  // Balance y Totales
   const totalIngresos = (appData.finanzas?.ingresos || []).reduce((acc, curr) => acc + curr.monto, 0);
   const totalGastos = (appData.finanzas?.gastos || []).reduce((acc, curr) => acc + curr.monto, 0);
   const balance = totalIngresos - totalGastos;
@@ -632,9 +890,6 @@ function App() {
 
   return (
     <div style={styles.container}>
-      <div className="aurora-uno"></div>
-      <div className="aurora-dos"></div>
-
       <header style={styles.header}>
         <div style={styles.clockText}>
           {tiempoActual.toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'short' }).toUpperCase()} | {tiempoActual.toLocaleTimeString()}
@@ -704,7 +959,6 @@ function App() {
               </div>
             </div>
 
-            {/* HISTORIAL GRÁFICO DE HÁBITOS */}
             <div style={styles.card}>
               <h2 style={styles.sectionTitle}>📊 Rendimiento Físico Semanal</h2>
               <div style={{ marginBottom: '15px' }}>
@@ -758,7 +1012,6 @@ function App() {
 
         {tab === 'finanzas' && (
           <div>
-            {/* CALCULADORA DE COSTOS 3D AVANZADA */}
             <div style={{ ...styles.card, border: '1px solid #00f5d440' }}>
               <h2 style={{ ...styles.sectionTitle, borderLeft: '3px solid #00f5d4' }}>🖨️ Cotizador & Calculadora 3D</h2>
               
@@ -822,7 +1075,6 @@ function App() {
               </div>
             </div>
 
-            {/* MONITOR DE MANTENIMIENTO DE LA ENDER-3 V3 SE */}
             <div style={{ ...styles.card, border: '1px solid #e11d4840' }}>
               <h2 style={{ ...styles.sectionTitle, borderLeft: '3px solid #e11d48' }}>🔧 Mantenimiento Ender-3 V3 SE</h2>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
@@ -830,7 +1082,6 @@ function App() {
                 <strong style={{ color: '#fff', fontSize: '14px' }}>{(appData.mantenimiento3D?.horasUsoAcumuladas || 0).toFixed(1)} hrs</strong>
               </div>
 
-              {/* 1. Lubricar varillas (50h) */}
               <div style={styles.progressBlock}>
                 <div style={styles.progressLabel}>
                   <span>🧹 Limpiar y Lubricar Ejes X/Y (Límite: 50h)</span>
@@ -848,7 +1099,6 @@ function App() {
                 </div>
               </div>
 
-              {/* 2. Tornillos y camas (100h) */}
               <div style={styles.progressBlock}>
                 <div style={styles.progressLabel}>
                   <span>🔩 Ajustar Tornillería y Correas X/Y (Límite: 100h)</span>
@@ -866,7 +1116,6 @@ function App() {
                 </div>
               </div>
 
-              {/* 3. Limpieza de Nozzle (150h) */}
               <div style={styles.progressBlock}>
                 <div style={styles.progressLabel}>
                   <span>🔥 Cambio/Limpieza de Boquilla (Límite: 150h)</span>
@@ -885,7 +1134,6 @@ function App() {
               </div>
             </div>
 
-            {/* META DE INVERSIÓN / UPGRADES CON PROYECCIÓN FINANCIERA */}
             <div style={{ ...styles.card, border: '1px solid #c084fc40', backgroundColor: '#130a2155' }}>
               <h2 style={{ ...styles.sectionTitle, borderLeft: '3px solid #c084fc' }}>🎯 Fondo de Reinversión & Upgrades</h2>
               <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '14px' }}>
@@ -905,7 +1153,7 @@ function App() {
               <div style={{ padding: '10px', backgroundColor: '#02040a', border: '1px dashed #c084fc40', borderRadius: '8px', marginBottom: '15px', fontSize: '11px', color: '#e9d5ff', lineHeight: '1.4' }}>
                 <strong>📈 Análisis Predictivo:</strong> {calcularProyeccion()}
               </div>
-              
+
               <form onSubmit={actualizarAhorroConfig} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '8px', marginTop: '15px' }}>
                 <input type="text" placeholder="Meta (ej: Ender 3 V3)" style={{ ...styles.input, marginBottom: 0 }} value={ahorroForm.concepto} onChange={(e) => setAhorroForm({ ...ahorroForm, concepto: e.target.value })} />
                 <input type="number" placeholder="Costo" style={{ ...styles.input, marginBottom: 0 }} value={ahorroForm.meta} onChange={(e) => setAhorroForm({ ...ahorroForm, meta: e.target.value })} />
@@ -914,7 +1162,6 @@ function App() {
               </form>
             </div>
 
-            {/* INVENTARIO DE FILAMENTOS */}
             <div style={styles.card}>
               <h2 style={styles.sectionTitle}>📦 Inventario de Filamentos</h2>
               <form onSubmit={registrarFilamento} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '18px' }}>
@@ -986,7 +1233,7 @@ function App() {
               <form onSubmit={agregarTransaccion}>
                 <input type="text" placeholder="Concepto (ej. Supermercado, Uber)" style={styles.input} value={finanzasForm.concepto} onChange={(e) => setFinanzasForm({ ...finanzasForm, concepto: e.target.value })} />
                 <input type="number" placeholder="Monto ($)" style={styles.input} value={finanzasForm.monto} onChange={(e) => setFinanzasForm({ ...finanzasForm, monto: e.target.value })} />
-                <select style={styles.select} value={finanzasForm.categoria} onChange={(e) => setFinanzasForm({ ...finanzasForm, categoria: e.target.value })}>
+                <select style={styles.select} value={finanzasForm.categoria} onChange={(e) => setFinanzasForm({ ...finanzasForm, category: e.target.value })}>
                   <option value="Otros">📦 Ingresos / Ventas 3D</option>
                   <option value="Comida">🥑 Comida / Despensa</option>
                   <option value="Estudios">📚 Universidad / Libros</option>
@@ -1036,7 +1283,6 @@ function App() {
               </div>
             </div>
 
-            {/* COLA DE TRABAJOS DE IMPRESIÓN 3D PROGRAMADA */}
             <div style={{ ...styles.card, border: '1px solid #00b4d840' }}>
               <h2 style={{ ...styles.sectionTitle, borderLeft: '3px solid #00b4d8' }}>⏳ Cola de Trabajos 3D (Cronograma)</h2>
               <form onSubmit={agregarTrabajoCola} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '8px', marginBottom: '15px' }}>
@@ -1059,7 +1305,7 @@ function App() {
               
               <ul style={styles.list}>
                 {colaOrdenada.map(t => {
-                  const esUrgente = t.fechaLimite && (new Date(t.fechaLimite) - new Date() < 172800000) && t.estado !== 'Terminado'; // menos de 48 horas
+                  const esUrgente = t.fechaLimite && (new Date(t.fechaLimite) - new Date() < 172800000) && t.estado !== 'Terminado'; 
                   return (
                     <li key={t.id} style={{ ...styles.listItem, flexDirection: 'column', alignItems: 'stretch', gap: '8px', borderColor: esUrgente ? '#ef444450' : '#1e293b', backgroundColor: esUrgente ? '#ef444405' : '#02040a' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1088,7 +1334,7 @@ function App() {
             <div style={styles.card}>
               <h2 style={styles.sectionTitle}>Objetivos Académicos y Lectura</h2>
               <form onSubmit={agregarCrecimiento}>
-                <select style={styles.select} value={crecimientoForm.tipo} onChange={(e) => setCrecimientoForm({ ...crecimientoForm, tipo: e.target.value, nombre: '' })}>
+                <select style={styles.select} value={crecimientoForm.tipo} onChange={(e) => setCrecimientoForm({ ...crecimientoForm, tipo: e.target.value, nombre: '', paginasTotales: e.target.value === 'curso' ? '10' : '200' })}>
                   <option value="curso">🏫 Materia / Curso Universidad</option>
                   <option value="libro">📖 Libro / Lectura Digital</option>
                 </select>
@@ -1102,7 +1348,10 @@ function App() {
                     <input type="number" placeholder="Total de páginas" style={styles.input} value={crecimientoForm.paginasTotales} onChange={(e) => setCrecimientoForm({ ...crecimientoForm, paginasTotales: e.target.value })} />
                   </>
                 ) : (
-                  <input type="text" placeholder="Nombre de la materia o certificación" style={styles.input} value={crecimientoForm.nombre} onChange={(e) => setCrecimientoForm({ ...crecimientoForm, nombre: e.target.value })} />
+                  <>
+                    <input type="text" placeholder="Nombre de la materia o certificación" style={styles.input} value={crecimientoForm.nombre} onChange={(e) => setCrecimientoForm({ ...crecimientoForm, nombre: e.target.value })} />
+                    <input type="number" placeholder="Total de clases o lecciones" style={styles.input} value={crecimientoForm.paginasTotales} onChange={(e) => setCrecimientoForm({ ...crecimientoForm, paginasTotales: e.target.value })} />
+                  </>
                 )}
                 <button type="submit" style={styles.submitBtn}>Asignar a la Lista</button>
               </form>
@@ -1152,7 +1401,6 @@ function App() {
                       <button onClick={() => eliminarMenteItem(c.id, 'curso')} style={styles.deleteBtn}>🗑️</button>
                     </div>
 
-                    {/* Barra de Progreso */}
                     <div style={{ ...styles.progressBarBg, height: '5px', marginBottom: '8px' }}>
                       <div style={{ 
                         ...styles.progressBarFill, 
@@ -1161,7 +1409,6 @@ function App() {
                       }}></div>
                     </div>
 
-                    {/* Controles de avance */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontSize: '11px', color: '#64748b' }}>
                         Clases: <strong>{actual} / {total}</strong> ({porcentaje}%)
@@ -1197,7 +1444,6 @@ function App() {
           </div>
         )}
 
-        {/* REGISTRO DIARIO DE VICTORIAS (CIERRE DEL DÍA) */}
         <div style={{ ...styles.card, border: '1px dashed #00f5d450', backgroundColor: '#020e1766' }}>
           <h2 style={{ ...styles.sectionTitle, borderLeft: '3px solid #00f5d4' }}>🏆 Victorias de Hoy (Ritual de Cierre)</h2>
           <div style={styles.victoriasGrid}>
